@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../pages/home_page.dart';
 import '../pages/game_pages.dart';
 import '../pages/profile_page.dart';
+import '../pages/dictionary_page.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 
@@ -79,7 +80,11 @@ class _NavigationWrapperState extends State<NavigationWrapper> {
         );
         break;
       case 1:
-        // Navigate to dictionary page - we'll need to create this navigation
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => DictionaryPage()),
+          (route) => false,
+        );
         break;
       case 2:
         Navigator.pushAndRemoveUntil(
