@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/user_service.dart';
 import 'dart:math';
 
 const Color primaryRed = Color(0xFFE60012);
@@ -219,16 +220,25 @@ class _FindImageGameState extends State<FindImageGame> {
     return "Continuez à apprendre, vous allez y arriver!";
   }
 
-  void _saveScoreToProfile() {
+  void _saveScoreToProfile() async {
     print("Score Trouvez l'image sauvegardé: $_totalXP XP - $_correctAnswers/${_gameQuestions.length}");
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Score de $_totalXP XP sauvegardé dans votre profil!"),
-        backgroundColor: primaryRed,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    // Ajouter les XP au backend
+    final result = await UserService.addXP(_totalXP);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['success'] == true 
+              ? "Score de $_totalXP XP sauvegardé dans votre profil! Niveau: ${result['level']}"
+              : "Erreur lors de la sauvegarde: ${result['message']}"
+          ),
+          backgroundColor: result['success'] == true ? primaryRed : Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override

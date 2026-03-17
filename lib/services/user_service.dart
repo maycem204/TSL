@@ -167,18 +167,61 @@ class UserService {
     await prefs.setInt(_keyUserXP, xp);
   }
 
-  // Obtenir les XP de l'utilisateur
-  static Future<int> getUserXP() async {
-    final backendAuth = BackendAuthService();
-    final session = await backendAuth.getSession();
-    
-    if (session != null && session['xp'] != null) {
-      return session['xp'] as int;
+  // Ajouter des XP à un utilisateur
+  static Future<Map<String, dynamic>> addXP(int xpToAdd) async {
+    try {
+      final backendAuth = BackendAuthService();
+      final session = await backendAuth.getSession();
+      
+      if (session == null) {
+        return {
+          'success': false,
+          'message': 'Utilisateur non connecté',
+          'error': 'USER_NOT_LOGGED_IN',
+        };
+      }
+      
+      final email = session['email'] as String;
+      final result = await backendAuth.addXP(email, xpToAdd);
+      
+      if (result['success'] == true) {
+        // Mettre à jour les données locales
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(_keyUserXP, result['total_xp']);
+        await prefs.setString(_keyUserLevel, result['level']);
+      }
+      
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur lors de l\'ajout des XP: ${e.toString()}',
+        'error': 'XP_UPDATE_FAILED',
+      };
     }
-    
-    // Fallback sur l'ancienne méthode
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_keyUserXP) ?? 0;
+  }
+  
+  // Obtenir les statistiques de jeu
+  static Future<Map<String, dynamic>> getGameStats() async {
+    try {
+      final backendAuth = BackendAuthService();
+      final session = await backendAuth.getSession();
+      
+      if (session == null) {
+        return {
+          'success': false,
+          'message': 'Utilisateur non connecté',
+        };
+      }
+      
+      final email = session['email'] as String;
+      return await backendAuth.getGameStats(email);
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur: ${e.toString()}',
+      };
+    }
   }
 
   // Se déconnecter

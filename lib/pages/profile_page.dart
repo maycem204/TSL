@@ -17,6 +17,11 @@ class _ProfilePageState extends State<ProfilePage> {
   String _userName = 'Chargement...';
   String _userEmail = 'Chargement...';
   int _userXP = 0;
+  String _userLevel = 'Débutant';
+  int _gamesPlayed = 0;
+  int _lastGameScore = 0;
+  double _avgScore = 0.0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -25,13 +30,48 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUserInfo() async {
-    final userInfo = await UserService.getUserInfo();
-    final userXP = await UserService.getUserXP();
-    setState(() {
-      _userName = userInfo['name']!;
-      _userEmail = userInfo['email']!;
-      _userXP = userXP;
-    });
+    setState(() => _isLoading = true);
+    
+    try {
+      final userInfo = await UserService.getUserInfo();
+      final gameStats = await UserService.getGameStats();
+      
+      if (gameStats['success'] == true) {
+        final stats = gameStats['stats'];
+        setState(() {
+          _userName = userInfo['name'] ?? 'Utilisateur';
+          _userEmail = userInfo['email'] ?? 'email@example.com';
+          _userXP = stats['total_xp'] ?? 0;
+          _userLevel = stats['level'] ?? 'Débutant';
+          _gamesPlayed = stats['games_played'] ?? 0;
+          _lastGameScore = stats['last_game_score'] ?? 0;
+          _avgScore = (stats['avg_score'] ?? 0.0).toDouble();
+          _isLoading = false;
+        });
+      } else {
+        // Fallback si les stats ne sont pas disponibles
+        final userInfo = await UserService.getUserInfo();
+        setState(() {
+          _userName = userInfo['name'] ?? 'Utilisateur';
+          _userEmail = userInfo['email'] ?? 'email@example.com';
+          _userXP = 0; // Valeur par défaut
+          _userLevel = 'Débutant';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  String _calculateLevel(int xp) {
+    if (xp < 100) return 'Débutant';
+    if (xp < 300) return 'Intermédiaire';
+    if (xp < 600) return 'Avancé';
+    if (xp < 1000) return 'Expert';
+    return 'Maître';
   }
 
   @override
@@ -209,11 +249,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: Colors.black,
                           ),
                         ),
-                        const Text(
-                          "XP",
+                        const SizedBox(height: 4),
+                        Text(
+                          "Points XP",
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey,
+                            color: Colors.grey[600],
                           ),
                         ),
                       ],
@@ -221,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Signs Learned Card
+                // Level Card
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -245,19 +286,20 @@ class _ProfilePageState extends State<ProfilePage> {
                           size: 32,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "24",
-                          style: TextStyle(
-                            fontSize: 20,
+                        Text(
+                          _userLevel,
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
                         ),
-                        const Text(
-                          "Signes appris",
+                        const SizedBox(height: 4),
+                        Text(
+                          "Niveau",
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey,
+                            color: Colors.grey[600],
                           ),
                         ),
                       ],
@@ -265,7 +307,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Consecutive Days Card
+                // Games Played Card
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -284,24 +326,25 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       children: [
                         const Icon(
-                          Icons.local_fire_department,
-                          color: primaryRed,
+                          Icons.sports_esports,
+                          color: Colors.blue,
                           size: 32,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "8",
-                          style: TextStyle(
+                        Text(
+                          "$_gamesPlayed",
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
                         ),
-                        const Text(
-                          "Jours consécutifs",
+                        const SizedBox(height: 4),
+                        Text(
+                          "Jeux joués",
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey,
+                            color: Colors.grey[600],
                           ),
                         ),
                       ],
