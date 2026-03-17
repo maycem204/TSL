@@ -75,28 +75,47 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    // Simulation d'inscription - à adapter avec votre logique réelle
+    // Utiliser le backend pour l'inscription
     final fullName = "$firstName $lastName";
     
-    await UserService.saveLoginState(
-      userName: fullName,
-      email: email,
-      password: password,
-    );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Inscription réussie!"),
-          backgroundColor: Colors.green,
-        ),
-      );
+    try {
+      final result = await UserService.register(email, password, fullName);
       
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      if (mounted) {
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("${result['message']} Veuillez vous connecter."),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+          // Rediriger vers la page de connexion
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => LoginPage(),
+            ),
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? "Erreur lors de l'inscription"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

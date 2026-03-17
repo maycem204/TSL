@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -31,6 +32,10 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3));
 
     final isLoggedIn = await UserService.isLoggedIn();
+    
+    if (kDebugMode) {
+      print('🔍 Debug: User logged in? $isLoggedIn');
+    }
 
     if (!mounted) return;
 

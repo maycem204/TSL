@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ai_recognition.dart';
 import 'game_pages.dart';
 import 'profile_page.dart';
+import 'dictionary_page.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -72,7 +73,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return _HomePageContent();
       case 1:
-        return _CategoriesPage();
+        return DictionaryPage();
       case 2:
         return GamesPage();
       case 3:

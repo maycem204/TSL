@@ -49,28 +49,42 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Simulation de connexion - à adapter avec votre logique réelle
-    if (email == "user@example.com" && password == "password") {
-      await UserService.saveLoginState(
-        userName: "Utilisateur Test",
-        email: email,
-        password: password,
-      );
-
+    // Utiliser le backend pour la connexion
+    try {
+      final result = await UserService.login(email, password);
+      
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? "Connexion réussie"),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? "Email ou mot de passe incorrect"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur: ${e.toString()}"),
+            backgroundColor: Colors.red,
           ),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Email ou mot de passe incorrect"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
