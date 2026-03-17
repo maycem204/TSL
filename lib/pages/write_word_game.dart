@@ -8,6 +8,8 @@ const Color mediumRed = Color(0xFFB32D2D);
 const Color darkRed = Color(0xFF801818);
 const Color lightRed2 = Color(0xFFCC0000);
 const Color mediumRed2 = Color(0xFF990000);
+const Color successGreen = Color(0xFF4CAF50);
+const Color errorOrange = Color(0xFFFF9800);
 
 class WriteWordGamePage extends StatefulWidget {
   const WriteWordGamePage({super.key});
@@ -39,8 +41,18 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
   
   late AnimationController _bounceController;
   late AnimationController _sparkleController;
+  late AnimationController _shakeController;
+  late AnimationController _pulseController;
+  late AnimationController _celebrationController;
   late Animation<double> _bounceAnimation;
   late Animation<double> _sparkleAnimation;
+  late Animation<double> _shakeAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _celebrationAnimation;
+  
+  final TextEditingController _textController = TextEditingController();
+  bool _showResult = false;
+  bool _isCorrect = false;
 
   @override
   void initState() {
@@ -53,12 +65,34 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _celebrationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
     _bounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.bounceOut),
     );
     _sparkleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _sparkleController, curve: Curves.easeInOut),
     );
+    _shakeAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _celebrationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _celebrationController, curve: Curves.elasticOut),
+    );
+    _pulseController.repeat(reverse: true);
     _initializeGame();
   }
 
@@ -70,12 +104,16 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
   void _startGame() {
     _bounceController.forward();
     _sparkleController.forward();
+    _celebrationController.forward();
     
     setState(() {
       _gameStarted = true;
       _currentQuestionIndex = 0;
       _totalXP = 0;
       _correctAnswers = 0;
+      _showResult = false;
+      _isCorrect = false;
+      _textController.clear();
       _initializeGame();
     });
   }
@@ -85,20 +123,49 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
     
     setState(() {
       _currentQuestionIndex++;
+      _showResult = false;
+      _isCorrect = false;
+      _textController.clear();
     });
   }
 
   void _checkAnswer(String userAnswer) {
+    if (userAnswer.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.sentiment_dissatisfied, color: Colors.white),
+              const SizedBox(width: 8),
+              const Text("Veuillez écrire un mot"),
+            ],
+          ),
+          backgroundColor: primaryRed,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final correctAnswer = _gameQuestions[_currentQuestionIndex].word.toLowerCase();
     final isCorrect = userAnswer.toLowerCase().trim() == correctAnswer || 
                     correctAnswer.contains(userAnswer.toLowerCase().trim()) || 
                     userAnswer.toLowerCase().trim().contains(correctAnswer);
 
     setState(() {
+      _showResult = true;
+      _isCorrect = isCorrect;
+      
       if (isCorrect) {
         _totalXP += 10;
         _correctAnswers++;
         _sparkleController.forward(from: 0.0);
+        _celebrationController.forward(from: 0.0);
+      } else {
+        _shakeController.forward(from: 0.0);
       }
     });
 
@@ -218,6 +285,10 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
   void dispose() {
     _bounceController.dispose();
     _sparkleController.dispose();
+    _shakeController.dispose();
+    _pulseController.dispose();
+    _celebrationController.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -285,71 +356,89 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                 animation: _bounceController,
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: 1.0 + (_bounceAnimation.value * 0.2),
+                    scale: 1.0 + (_bounceAnimation.value * 0.3),
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [mediumRed, mediumRed2],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+                        color: primaryRed,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
+                            color: primaryRed.withOpacity(0.3),
+                            blurRadius: 25,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 48,
+                          AnimatedBuilder(
+                            animation: _celebrationController,
+                            builder: (context, child) {
+                              return Transform.rotate(
+                                angle: _celebrationAnimation.value * 6.28,
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
                           const Text(
                             "Écrivez le mot correspondant!",
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 26,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           const Text(
-                            "L'application va vous montrer des signes aléatoires\net vous devez écrire le mot correspondant",
+                            "L'application va vous montrer des signes\net vous devez écrire le mot correspondant",
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.4),
+                                width: 2,
+                              ),
                             ),
                             child: const Column(
                               children: [
                                 Text(
                                   "6 exercices • 10 XP par bonne réponse",
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: primaryRed,
+                                    color: Colors.white,
                                   ),
                                 ),
+                                SizedBox(height: 4),
                                 Text(
                                   "Maximum: 60 XP",
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color: primaryRed,
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
@@ -366,29 +455,61 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
               
               SizedBox(
                 width: double.infinity,
-                height: 55,
+                height: 65,
                 child: AnimatedBuilder(
-                  animation: _bounceController,
+                  animation: _pulseController,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: 1.0 + (_bounceAnimation.value * 0.1),
-                      child: ElevatedButton(
-                        onPressed: _startGame,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryRed,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                          shadowColor: Colors.black.withOpacity(0.3),
+                      scale: 1.0 + (_pulseAnimation.value * 0.05),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: primaryRed,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryRed.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          "Commencer le jeu",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        child: ElevatedButton(
+                          onPressed: _startGame,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _celebrationController,
+                                builder: (context, child) {
+                                  return Transform.rotate(
+                                    angle: _celebrationAnimation.value * 3.14,
+                                    child: const Icon(
+                                      Icons.play_arrow_rounded,
+                                      size: 32,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                "Commencer le jeu",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -442,98 +563,233 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                     scale: 1.0 + (_bounceAnimation.value * 0.05),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.white, mediumRed2],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: primaryRed.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            "Quel est ce mot?",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            width: 200,
-                            height: 200,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [mediumRed2, mediumRed2.withOpacity(0.3)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.quiz,
+                                color: primaryRed,
+                                size: 24,
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.sign_language,
-                              color: Colors.white,
-                              size: 80,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            onChanged: (value) => _checkAnswer(value),
-                            onSubmitted: (value) => _checkAnswer(value),
-                            decoration: InputDecoration(
-                              hintText: "Écrivez votre réponse...",
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              prefixIcon: const Icon(Icons.edit, color: primaryRed),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: () => _checkAnswer(""),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryRed,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                shadowColor: Colors.black.withOpacity(0.2),
-                              ),
-                              child: const Text(
-                                "Valider (+10 XP)",
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Quel est ce mot?",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 20,
+                                  color: primaryRed,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
+                            ],
                           ),
+                          const SizedBox(height: 24),
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 800),
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Transform.scale(
+                                scale: value,
+                                child: Transform.rotate(
+                                  angle: (1 - value) * 0.2,
+                                  child: Container(
+                                    width: 220,
+                                    height: 220,
+                                    decoration: BoxDecoration(
+                                      color: primaryRed,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: primaryRed.withOpacity(0.3),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedBuilder(
+                                          animation: _pulseController,
+                                          builder: (context, child) {
+                                            return Transform.scale(
+                                              scale: 1.0 + (_pulseAnimation.value * 0.1),
+                                              child: const Icon(
+                                                Icons.sign_language,
+                                                color: Colors.white,
+                                                size: 80,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          "Signe",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          AnimatedBuilder(
+                            animation: _shakeController,
+                            builder: (context, child) {
+                              return Transform.translate(
+                                offset: Offset(_shakeAnimation.value * 0.5, 0),
+                                child: TextField(
+                                  controller: _textController,
+                                  enabled: !_showResult,
+                                  onChanged: (value) {
+                                    if (_showResult) return;
+                                    if (value.trim().isNotEmpty) {
+                                      _checkAnswer(value);
+                                    }
+                                  },
+                                  onSubmitted: (value) {
+                                    if (_showResult) return;
+                                    _checkAnswer(value);
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: "Écrivez votre réponse...",
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: _showResult 
+                                          ? (_isCorrect ? successGreen : errorOrange)
+                                          : primaryRed,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: const BorderSide(
+                                        color: primaryRed,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.edit,
+                                      color: _showResult 
+                                        ? (_isCorrect ? successGreen : errorOrange)
+                                        : primaryRed,
+                                    ),
+                                    suffixIcon: _showResult
+                                      ? Icon(
+                                          _isCorrect ? Icons.check_circle : Icons.cancel,
+                                          color: _isCorrect ? successGreen : errorOrange,
+                                        )
+                                      : null,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          if (_showResult) ...[
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: _isCorrect ? successGreen.withOpacity(0.1) : errorOrange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: _isCorrect ? successGreen : errorOrange,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (_isCorrect ? successGreen : errorOrange).withOpacity(0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AnimatedBuilder(
+                                    animation: _bounceController,
+                                    builder: (context, child) {
+                                      return Transform.scale(
+                                        scale: 1.0 + (_bounceAnimation.value * 0.2),
+                                        child: Icon(
+                                          _isCorrect ? Icons.emoji_events : Icons.sentiment_dissatisfied,
+                                          color: _isCorrect ? successGreen : errorOrange,
+                                          size: 32,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        _isCorrect ? "Correct! +10 XP" : "Essayez encore!",
+                                        style: TextStyle(
+                                          color: _isCorrect ? successGreen : errorOrange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      if (_isCorrect)
+                                        const Text(
+                                          "Super écriture!",
+                                          style: TextStyle(
+                                            color: successGreen,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      if (!_isCorrect)
+                                        Text(
+                                          "La réponse était: ${_gameQuestions[_currentQuestionIndex].word}",
+                                          style: TextStyle(
+                                            color: errorOrange,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              "Écrivez le mot et la réponse sera vérifiée automatiquement!",
+                              style: TextStyle(
+                                color: primaryRed.withOpacity(0.7),
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ],
                       ),
                     ),

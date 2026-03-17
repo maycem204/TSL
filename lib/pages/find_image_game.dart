@@ -8,6 +8,8 @@ const Color mediumRed = Color(0xFFB32D2D);
 const Color darkRed = Color(0xFF801818);
 const Color lightRed2 = Color(0xFFCC0000);
 const Color mediumRed2 = Color(0xFF990000);
+const Color successGreen = Color(0xFF4CAF50);
+const Color errorOrange = Color(0xFFFF9800);
 
 class FindImageGame extends StatefulWidget {
   const FindImageGame({super.key});
@@ -16,7 +18,7 @@ class FindImageGame extends StatefulWidget {
   State<FindImageGame> createState() => _FindImageGameState();
 }
 
-class _FindImageGameState extends State<FindImageGame> with TickerProviderStateMixin {
+class _FindImageGameState extends State<FindImageGame> {
   final List<SignItem> _allSigns = [
     SignItem(word: "Bonjour", imagePath: "assets/images/signs/bonjour.png"),
     SignItem(word: "Merci", imagePath: "assets/images/signs/merci.png"),
@@ -42,29 +44,10 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
   int? _selectedImageIndex;
   bool _gameStarted = false;
   final Random _random = Random();
-  
-  late AnimationController _confettiController;
-  late AnimationController _bounceController;
-  late Animation<double> _confettiAnimation;
-  late Animation<double> _bounceAnimation;
 
   @override
   void initState() {
     super.initState();
-    _confettiController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _bounceController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _confettiAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _confettiController, curve: Curves.elasticOut),
-    );
-    _bounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _bounceController, curve: Curves.bounceOut),
-    );
     _initializeGame();
   }
 
@@ -74,9 +57,6 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
   }
 
   void _startGame() {
-    _confettiController.forward();
-    _bounceController.forward();
-    
     setState(() {
       _gameStarted = true;
       _currentQuestionIndex = 0;
@@ -137,7 +117,6 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
       if (_isCorrect) {
         _totalXP += 10;
         _correctAnswers++;
-        _confettiController.forward(from: 0.0);
       }
     });
 
@@ -153,8 +132,6 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
   }
 
   void _nextQuestion() {
-    _bounceController.forward(from: 0.0);
-    
     setState(() {
       _currentQuestionIndex++;
       _setupQuestion();
@@ -178,18 +155,10 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedBuilder(
-              animation: _confettiController,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: 1.0 + (_confettiAnimation.value * 0.3),
-                  child: Icon(
-                    _totalXP >= 40 ? Icons.emoji_events : _totalXP >= 20 ? Icons.star : Icons.star_outline,
-                    size: 60,
-                    color: _totalXP >= 40 ? primaryRed : _totalXP >= 20 ? primaryRed.withOpacity(0.7) : primaryRed,
-                  ),
-                );
-              },
+            Icon(
+              _totalXP >= 40 ? Icons.emoji_events : _totalXP >= 20 ? Icons.star : Icons.star_outline,
+              size: 60,
+              color: _totalXP >= 40 ? primaryRed : _totalXP >= 20 ? primaryRed.withOpacity(0.7) : primaryRed,
             ),
             const SizedBox(height: 16),
             Text(
@@ -264,8 +233,6 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
 
   @override
   void dispose() {
-    _confettiController.dispose();
-    _bounceController.dispose();
     super.dispose();
   }
 
@@ -295,18 +262,10 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
               padding: const EdgeInsets.only(right: 16),
               child: Row(
                 children: [
-                  AnimatedBuilder(
-                    animation: _confettiController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: _confettiAnimation.value * 6.28,
-                        child: const Icon(
-                          Icons.star,
-                          color: primaryRed,
-                          size: 20,
-                        ),
-                      );
-                    },
+                  const Icon(
+                    Icons.star,
+                    color: primaryRed,
+                    size: 20,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -329,153 +288,131 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
           children: [
             if (!_gameStarted) ...[
               const SizedBox(height: 40),
-              AnimatedBuilder(
-                animation: _bounceController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: 1.0 + (_bounceAnimation.value * 0.2),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [primaryRed, lightRed2],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
+                        color: primaryRed,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Column(
+                      child: const Icon(
+                        Icons.image,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Trouvez l'image correspondante!",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: primaryRed,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "L'application va vous proposer un mot\net vous devez sélectionner la bonne image",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: lightRed,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Column(
                         children: [
-                          const Icon(
-                            Icons.image,
-                            color: Colors.white,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            "Trouvez l'image correspondante!",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "L'application va vous proposer un mot\net vous devez sélectionner la bonne image",
+                          Text(
+                            "6 questions • 10 XP par bonne réponse",
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              color: primaryRed,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Column(
-                              children: [
-                                Text(
-                                  "6 questions • 10 XP par bonne réponse",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryRed,
-                                  ),
-                                ),
-                                Text(
-                                  "Maximum: 60 XP",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: primaryRed,
-                                  ),
-                                ),
-                              ],
+                          SizedBox(height: 4),
+                          Text(
+                            "Maximum: 60 XP",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: primaryRed,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
                 height: 55,
-                child: AnimatedBuilder(
-                  animation: _bounceController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: 1.0 + (_bounceAnimation.value * 0.1),
-                      child: ElevatedButton(
-                        onPressed: _startGame,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryRed,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                          shadowColor: Colors.black.withOpacity(0.3),
-                        ),
-                        child: const Text(
-                          "Commencer le jeu",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                child: ElevatedButton(
+                  onPressed: _startGame,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryRed,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
+                    shadowColor: Colors.black.withOpacity(0.3),
+                  ),
+                  child: const Text(
+                    "Commencer le jeu",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ] else ...[
               const SizedBox(height: 20),
-              AnimatedBuilder(
-                animation: _bounceController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: 1.0 + (_bounceAnimation.value * 0.05),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [mediumRed, mediumRed2],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        "Question ${_currentQuestionIndex + 1}/${_gameQuestions.length}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: primaryRed,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  );
-                },
+                  ],
+                ),
+                child: Text(
+                  "Question ${_currentQuestionIndex + 1}/${_gameQuestions.length}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               
@@ -483,17 +420,13 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primaryRed, lightRed2],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -503,19 +436,26 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
                       "Trouvez l'image pour:",
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.white,
+                        color: Colors.black54,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      _gameQuestions[_currentQuestionIndex].word,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: primaryRed,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      textAlign: TextAlign.center,
+                      child: Text(
+                        _gameQuestions[_currentQuestionIndex].word,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
                 ),
@@ -541,8 +481,7 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
                   
                   return GestureDetector(
                     onTap: () => _selectImage(index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
+                    child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
@@ -572,24 +511,28 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
                           borderRadius: BorderRadius.circular(8),
                           child: Stack(
                             children: [
-                              // Placeholder image (since we don't have actual assets)
+                              // Placeholder image
                               Container(
                                 width: double.infinity,
                                 height: double.infinity,
-                                color: Colors.black12,
+                                color: Colors.black.withOpacity(0.08),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
                                       Icons.image,
                                       size: 40,
-                                      color: Colors.black38,
+                                      color: isSelected 
+                                        ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                        : Colors.black38,
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       "Image ${index + 1}",
                                       style: TextStyle(
-                                        color: Colors.black54,
+                                        color: isSelected 
+                                          ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                          : Colors.black54,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -602,22 +545,50 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
                                 Container(
                                   width: double.infinity,
                                   height: double.infinity,
-                                  color: primaryRed.withOpacity(0.3),
-                                  child: const Icon(
-                                    Icons.check_circle,
-                                    color: primaryRed,
-                                    size: 40,
+                                  color: successGreen.withOpacity(0.2),
+                                  child: const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: successGreen,
+                                        size: 50,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "Correct!",
+                                        style: TextStyle(
+                                          color: successGreen,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               if (_showResult && isSelected && index != _correctImageIndex)
                                 Container(
                                   width: double.infinity,
                                   height: double.infinity,
-                                  color: primaryRed.withOpacity(0.3),
-                                  child: const Icon(
-                                    Icons.cancel,
-                                    color: primaryRed,
-                                    size: 40,
+                                  color: errorOrange.withOpacity(0.2),
+                                  child: const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.cancel,
+                                        color: errorOrange,
+                                        size: 50,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "Incorrect!",
+                                        style: TextStyle(
+                                          color: errorOrange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                             ],
@@ -661,26 +632,33 @@ class _FindImageGameState extends State<FindImageGame> with TickerProviderStateM
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: _isCorrect ? primaryRed.withOpacity(0.1) : primaryRed.withOpacity(0.05),
+                    color: _isCorrect ? successGreen.withOpacity(0.1) : errorOrange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _isCorrect ? primaryRed : primaryRed.withOpacity(0.7),
+                      color: _isCorrect ? successGreen : errorOrange,
                       width: 2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isCorrect ? successGreen : errorOrange).withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         _isCorrect ? Icons.check_circle : Icons.cancel,
-                        color: _isCorrect ? primaryRed : primaryRed.withOpacity(0.7),
+                        color: _isCorrect ? successGreen : errorOrange,
                         size: 24,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _isCorrect ? "Correct! +10 XP" : "Incorrect! Essayez encore",
+                        _isCorrect ? "Correct! +10 XP" : "Essayez encore!",
                         style: TextStyle(
-                          color: _isCorrect ? primaryRed : primaryRed.withOpacity(0.7),
+                          color: _isCorrect ? successGreen : errorOrange,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),

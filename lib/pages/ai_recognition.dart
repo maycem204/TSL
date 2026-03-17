@@ -307,38 +307,6 @@ class _AIRecognitionPageState extends State<AIRecognitionPage> {
                 ),
               ),
 
-              // BOUTON RÉINITIALISER
-              if (detectedSign != null)
-                Column(
-                  children: [
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: OutlinedButton(
-                        onPressed: _resetRecognition,
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                            color: primaryRed,
-                            width: 2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text(
-                          "Nouvelle reconnaissance",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: primaryRed,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
               const SizedBox(height: 40),
             ],
           ),
