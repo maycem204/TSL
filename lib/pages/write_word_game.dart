@@ -151,10 +151,11 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
       return;
     }
 
-    final correctAnswer = _gameQuestions[_currentQuestionIndex].word.toLowerCase();
-    final isCorrect = userAnswer.toLowerCase().trim() == correctAnswer || 
-                    correctAnswer.contains(userAnswer.toLowerCase().trim()) || 
-                    userAnswer.toLowerCase().trim().contains(correctAnswer);
+    final correctAnswer = _gameQuestions[_currentQuestionIndex].word.toLowerCase().trim();
+    final userAnswerClean = userAnswer.toLowerCase().trim();
+    
+    // Validation stricte : le mot doit être exactement le même
+    final isCorrect = userAnswerClean == correctAnswer;
 
     setState(() {
       _showResult = true;
@@ -671,14 +672,11 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                                   controller: _textController,
                                   enabled: !_showResult,
                                   onChanged: (value) {
-                                    if (_showResult) return;
-                                    if (value.trim().isNotEmpty) {
-                                      _checkAnswer(value);
-                                    }
+                                    // Ne plus valider automatiquement à chaque changement
+                                    // L'utilisateur doit cliquer sur le bouton pour valider
                                   },
                                   onSubmitted: (value) {
-                                    if (_showResult) return;
-                                    _checkAnswer(value);
+                                    // Plus de validation par Entrée - uniquement par bouton
                                   },
                                   decoration: InputDecoration(
                                     hintText: "Écrivez votre réponse...",
@@ -790,8 +788,35 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                               ),
                             ),
                           ] else ...[
+                            // Bouton de validation
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: _textController.text.trim().isNotEmpty 
+                                  ? () => _checkAnswer(_textController.text)
+                                  : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryRed,
+                                  disabledBackgroundColor: Colors.grey,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  "Valider ma réponse",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             Text(
-                              "Écrivez le mot et la réponse sera vérifiée automatiquement!",
+                              "Écrivez le mot complet puis cliquez sur 'Valider ma réponse'",
                               style: TextStyle(
                                 color: primaryRed.withOpacity(0.7),
                                 fontSize: 14,
