@@ -21,16 +21,12 @@ class FindImageGame extends StatefulWidget {
 
 class _FindImageGameState extends State<FindImageGame> {
   final List<SignItem> _allSigns = [
-    SignItem(word: "Bonjour", imagePath: "assets/images/signs/bonjour.png"),
-    SignItem(word: "Merci", imagePath: "assets/images/signs/merci.png"),
-    SignItem(word: "Au revoir", imagePath: "assets/images/signs/aurevoir.png"),
-    SignItem(word: "S'il vous plaît", imagePath: "assets/images/signs/silvousplait.png"),
-    SignItem(word: "Comment allez-vous?", imagePath: "assets/images/signs/comment.png"),
-    SignItem(word: "Je t'aime", imagePath: "assets/images/signs/jtaime.png"),
-    SignItem(word: "Excusez-moi", imagePath: "assets/images/signs/excusezmoi.png"),
-    SignItem(word: "Oui", imagePath: "assets/images/signs/oui.png"),
-    SignItem(word: "Non", imagePath: "assets/images/signs/non.png"),
-    SignItem(word: "Aidez-moi", imagePath: "assets/images/signs/aidezmoi.png"),
+    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte.png"),
+    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison.png"),
+    SignItem(word: "Maman", imagePath: "dictionnaire_DB/mama-maman.png"),
+    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okht-soeur.png"),
+    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance.png"),
+    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre.png"),
   ];
 
   late List<SignItem> _gameQuestions;
@@ -521,35 +517,55 @@ class _FindImageGameState extends State<FindImageGame> {
                           borderRadius: BorderRadius.circular(8),
                           child: Stack(
                             children: [
-                              // Placeholder image
+                              // Image
                               Container(
                                 width: double.infinity,
                                 height: double.infinity,
-                                color: Colors.black.withOpacity(0.08),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.image,
-                                      size: 40,
-                                      color: isSelected 
-                                        ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
-                                        : Colors.black38,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Image ${index + 1}",
-                                      style: TextStyle(
-                                        color: isSelected 
-                                          ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
-                                          : Colors.black54,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    _currentImages[index],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.image,
+                                              size: 40,
+                                              color: isSelected 
+                                                ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                                : Colors.grey[400],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              "Image ${index + 1}",
+                                              style: TextStyle(
+                                                color: isSelected 
+                                                  ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                                  : Colors.grey[600],
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                              
                               // Overlay for correct/wrong answers
                               if (_showResult && index == _correctImageIndex)
                                 Container(

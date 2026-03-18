@@ -21,16 +21,12 @@ class WriteWordGamePage extends StatefulWidget {
 
 class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProviderStateMixin {
   final List<SignItem> _allSigns = [
-    SignItem(word: "Bonjour", imagePath: "assets/images/signs/bonjour.png"),
-    SignItem(word: "Merci", imagePath: "assets/images/signs/merci.png"),
-    SignItem(word: "Au revoir", imagePath: "assets/images/signs/aurevoir.png"),
-    SignItem(word: "S'il vous plaît", imagePath: "assets/images/signs/silvousplait.png"),
-    SignItem(word: "Comment allez-vous?", imagePath: "assets/images/signs/comment.png"),
-    SignItem(word: "Je t'aime", imagePath: "assets/images/signs/jtaime.png"),
-    SignItem(word: "Excusez-moi", imagePath: "assets/images/signs/excusezmoi.png"),
-    SignItem(word: "Oui", imagePath: "assets/images/signs/oui.png"),
-    SignItem(word: "Non", imagePath: "assets/images/signs/non.png"),
-    SignItem(word: "Aidez-moi", imagePath: "assets/images/signs/aidezmoi.png"),
+    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte.png"),
+    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison.png"),
+    SignItem(word: "Maman", imagePath: "dictionnaire_DB/mama-maman.png"),
+    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okht-soeur.png"),
+    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance.png"),
+    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre.png"),
   ];
 
   late List<SignItem> _gameQuestions;
@@ -638,18 +634,35 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                                           builder: (context, child) {
                                             return Transform.scale(
                                               scale: 1.0 + (_pulseAnimation.value * 0.1),
-                                              child: const Icon(
-                                                Icons.sign_language,
-                                                color: Colors.white,
-                                                size: 80,
+                                              child: Container(
+                                                width: 160,
+                                                height: 160,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.asset(
+                                                    _gameQuestions[_currentQuestionIndex].imagePath,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return const Icon(
+                                                        Icons.sign_language,
+                                                        color: primaryRed,
+                                                        size: 80,
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
                                               ),
                                             );
                                           },
                                         ),
                                         const SizedBox(height: 12),
-                                        const Text(
-                                          "Signe",
-                                          style: TextStyle(
+                                        Text(
+                                          _gameQuestions[_currentQuestionIndex].word,
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -793,11 +806,11 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: _textController.text.trim().isNotEmpty 
+                                onPressed: (_textController.text.trim().isNotEmpty && !_showResult) 
                                   ? () => _checkAnswer(_textController.text)
                                   : null,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryRed,
+                                  backgroundColor: (_textController.text.trim().isNotEmpty && !_showResult) ? primaryRed : Colors.grey,
                                   disabledBackgroundColor: Colors.grey,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
