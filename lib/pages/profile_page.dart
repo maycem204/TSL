@@ -31,6 +31,8 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    // Charger l'image de profil indépendamment
+    _loadProfileImage();
   }
 
   Future<void> _loadUserInfo() async {
@@ -77,18 +79,73 @@ class _ProfilePageState extends State<ProfilePage> {
       final profileImageBase64 = prefs.getString('profile_image_base64');
       
       if (profileImageBase64 != null && profileImageBase64.isNotEmpty) {
-        setState(() {
-          _profileImagePath = profileImageBase64;
-          _hasProfileImage = true;
-        });
+        if (mounted) {
+          setState(() {
+            _profileImagePath = profileImageBase64;
+            _hasProfileImage = true;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _profileImagePath = null;
+            _hasProfileImage = false;
+          });
+        }
       }
     } catch (e) {
       print('Erreur lors du chargement de l\'image de profil: $e');
+      if (mounted) {
+        setState(() {
+          _profileImagePath = null;
+          _hasProfileImage = false;
+        });
+      }
+    }
+  }
+
+  // Widget pour construire l'image de profil avec gestion d'erreur
+  Widget _buildProfileImage() {
+    try {
+      print('🖼️ Tentative d\'affichage de l\'image de profil');
+      print('📏 Taille de l\'image: ${_profileImagePath?.length ?? 0} caractères');
+      
+      if (_profileImagePath == null || _profileImagePath!.isEmpty) {
+        print('❌ Image vide ou nulle');
+        return _buildDefaultAvatar();
+      }
+      
+      // Vérifier si c'est du base64
+      if (_profileImagePath!.startsWith('data:image')) {
+        final base64String = _profileImagePath!.split(',')[1];
+        print('✅ Image Base64 détectée, décodage...');
+        
+        final imageBytes = base64Decode(base64String);
+        print('✅ Décodage réussi, ${imageBytes.length} bytes');
+        
+        return Image.memory(
+          imageBytes,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ Erreur d\'affichage: $error');
+            return _buildDefaultAvatar();
+          },
+        );
+      } else {
+        print('⚠️ Format d\'image non reconnu: ${_profileImagePath!.substring(0, 50)}...');
+        return _buildDefaultAvatar();
+      }
+    } catch (e) {
+      print('❌ Erreur lors de la construction de l\'image: $e');
+      return _buildDefaultAvatar();
     }
   }
 
   // Widget pour l'avatar par défaut
   Widget _buildDefaultAvatar() {
+    print('🔤 Affichage de l\'avatar par défaut avec lettre: ${_userName.isNotEmpty ? _userName[0].toUpperCase() : 'U'}');
     return Center(
       child: Text(
         _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
@@ -160,15 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: ClipOval(
                           child: _hasProfileImage && _profileImagePath != null
-                              ? Image.memory(
-                                  base64Decode(_profileImagePath!.split(',')[1]),
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildDefaultAvatar();
-                                  },
-                                )
+                              ? _buildProfileImage()
                               : _buildDefaultAvatar(),
                         ),
                       ),
@@ -194,37 +243,34 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fontSize: 14,
                               ),
                             ),
+                            const SizedBox(height: 8),
+                            // Edit Button moved here
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SettingsPage(),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: primaryRed,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: const Text(
+                                "Modifier",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
-                  ),
-                  // Edit Button
-                  Positioned(
-                    bottom: 0,
-                    left: 76,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SettingsPage(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: primaryRed,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text(
-                        "Modifier",
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
                   ),
                   // Moon and Star Icon
                   const Positioned(

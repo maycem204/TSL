@@ -35,7 +35,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
   String searchQuery = "";
   final TextEditingController searchController = TextEditingController();
 
-  // DONNÉES DES SIGNES - IMAGES DU DOSSIER dictionnaire_DB
+  // DONNÉES DES SIGNES
   final List<Sign> allSigns = [
     Sign(
       id: 1,
@@ -123,7 +123,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 10),
             Container(
               width: double.infinity,
               height: 250,
@@ -149,7 +149,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 10),
             Text(
               sign.title,
               style: const TextStyle(
@@ -366,7 +366,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.7,
+                      childAspectRatio: 0.65,
                     ),
                     itemCount: filteredSigns.length,
                     itemBuilder: (context, index) {
@@ -388,10 +388,10 @@ class _DictionaryPageState extends State<DictionaryPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // IMAGE
+                              // IMAGE AGRANDIE
                               Container(
                                 width: double.infinity,
-                                height: 180,
+                                height: 250,
                                 decoration: BoxDecoration(
                                   color: bgGrey,
                                   borderRadius: const BorderRadius.vertical(
@@ -417,11 +417,12 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                   ),
                                 ),
                               ),
-                              // INFO
+                              // INFO REDUITE
                               Padding(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       sign.title,
@@ -433,11 +434,11 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 5),
+                                    const SizedBox(height: 1),
                                     Text(
                                       sign.category,
                                       style: const TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         color: primaryRed,
                                         fontWeight: FontWeight.w600,
                                       ),
