@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/user_service.dart';
 import 'settings_page.dart';
 
@@ -22,6 +24,8 @@ class _ProfilePageState extends State<ProfilePage> {
   int _lastGameScore = 0;
   double _avgScore = 0.0;
   bool _isLoading = true;
+  String? _profileImagePath;
+  bool _hasProfileImage = false;
 
   @override
   void initState() {
@@ -59,13 +63,44 @@ class _ProfilePageState extends State<ProfilePage> {
           _isLoading = false;
         });
       }
+      
+      // Charger l'image de profil
+      await _loadProfileImage();
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
-  
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final profileImageBase64 = prefs.getString('profile_image_base64');
+      
+      if (profileImageBase64 != null && profileImageBase64.isNotEmpty) {
+        setState(() {
+          _profileImagePath = profileImageBase64;
+          _hasProfileImage = true;
+        });
+      }
+    } catch (e) {
+      print('Erreur lors du chargement de l\'image de profil: $e');
+    }
+  }
+
+  // Widget pour l'avatar par défaut
+  Widget _buildDefaultAvatar() {
+    return Center(
+      child: Text(
+        _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: primaryRed,
+        ),
+      ),
+    );
+  }
+
   String _calculateLevel(int xp) {
     if (xp < 100) return 'Débutant';
     if (xp < 300) return 'Intermédiaire';
@@ -123,15 +158,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: Center(
-                          child: Text(
-                            _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: primaryRed,
-                            ),
-                          ),
+                        child: ClipOval(
+                          child: _hasProfileImage && _profileImagePath != null
+                              ? Image.memory(
+                                  base64Decode(_profileImagePath!.split(',')[1]),
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildDefaultAvatar();
+                                  },
+                                )
+                              : _buildDefaultAvatar(),
                         ),
                       ),
                       const SizedBox(width: 16),

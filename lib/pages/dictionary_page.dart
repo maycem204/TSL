@@ -35,60 +35,60 @@ class _DictionaryPageState extends State<DictionaryPage> {
   String searchQuery = "";
   final TextEditingController searchController = TextEditingController();
 
-  // DONNÉES DES SIGNES - À REMPLACER PAR VOTRE BASE DE DONNÉES
+  // DONNÉES DES SIGNES - IMAGES DU DOSSIER dictionnaire_DB
   final List<Sign> allSigns = [
     Sign(
       id: 1,
-      title: "Bonjour",
-      category: "Salutations",
-      imagePath: "assets/signs/bonjour.png",
-      description: "Signe de salutation quotidienne",
-      synonyms: ["Salutation", "Accueil"],
+      title: "Carte",
+      category: "Objets",
+      imagePath: "dictionnaire_DB/carta-carte.png",
+      description: "Signe pour carte",
+      synonyms: ["Carte", "Document"],
     ),
     Sign(
       id: 2,
-      title: "Au revoir",
-      category: "Salutations",
-      imagePath: "assets/signs/au_revoir.png",
-      description: "Signe d'adieu",
-      synonyms: ["Départ", "Adieu"],
+      title: "Maison",
+      category: "Lieux",
+      imagePath: "dictionnaire_DB/dar-maison.png",
+      description: "Signe pour maison",
+      synonyms: ["Maison", "Domicile", "Chez soi"],
     ),
     Sign(
       id: 3,
-      title: "Merci",
-      category: "Politesse",
-      imagePath: "assets/signs/merci.png",
-      description: "Expression de gratitude",
-      synonyms: ["Gratitude", "Remerciement"],
+      title: "Maman",
+      category: "Famille",
+      imagePath: "dictionnaire_DB/mama-maman.png",
+      description: "Signe pour maman",
+      synonyms: ["Mère", "Maman"],
     ),
     Sign(
       id: 4,
-      title: "S'il vous plaît",
-      category: "Politesse",
-      imagePath: "assets/signs/svp.png",
-      description: "Demande polite",
-      synonyms: ["Requête", "Demande"],
+      title: "Soeur",
+      category: "Famille",
+      imagePath: "dictionnaire_DB/okht-soeur.png",
+      description: "Signe pour soeur",
+      synonyms: ["Soeur", "Sœur"],
     ),
     Sign(
       id: 5,
-      title: "Courir",
-      category: "Actions",
-      imagePath: "assets/signs/courir.png",
-      description: "Action de courir",
-      synonyms: ["Sprint", "Mouvement rapide"],
+      title: "Septembre",
+      category: "Mois",
+      imagePath: "dictionnaire_DB/septembre.png",
+      description: "Signe pour septembre",
+      synonyms: ["Septembre", "Mois 9"],
     ),
     Sign(
       id: 6,
-      title: "Marcher",
+      title: "Danser",
       category: "Actions",
-      imagePath: "assets/signs/marcher.png",
-      description: "Action de marcher",
-      synonyms: ["Déplacement", "Pas"],
+      imagePath: "dictionnaire_DB/yachtah-dance.png",
+      description: "Signe pour danser",
+      synonyms: ["Danse", "Bouger", "Yachtah"],
     ),
   ];
 
   List<String> get categories {
-    return ["Tous", "Salutations", "Politesse", "Actions", "Relations", "Nourriture", "Éducation"];
+    return ["Tous", "Objets", "Lieux", "Famille", "Mois", "Actions"];
   }
 
   List<Sign> get filteredSigns {
@@ -123,7 +123,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 2),
             Container(
               width: double.infinity,
               height: 250,
@@ -132,15 +132,24 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: Colors.grey[300]!),
               ),
-              child: Center(
-                child: Icon(
-                  Icons.image,
-                  size: 80,
-                  color: Colors.grey[400],
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Image.asset(
+                  sign.imagePath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 2),
             Text(
               sign.title,
               style: const TextStyle(
@@ -357,7 +366,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.85,
+                      childAspectRatio: 0.7,
                     ),
                     itemCount: filteredSigns.length,
                     itemBuilder: (context, index) {
@@ -382,18 +391,29 @@ class _DictionaryPageState extends State<DictionaryPage> {
                               // IMAGE
                               Container(
                                 width: double.infinity,
-                                height: 130,
+                                height: 180,
                                 decoration: BoxDecoration(
                                   color: bgGrey,
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(15),
                                   ),
                                 ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 50,
-                                    color: Colors.grey[400],
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(15),
+                                  ),
+                                  child: Image.asset(
+                                    sign.imagePath,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Icon(
+                                          Icons.image,
+                                          size: 50,
+                                          color: Colors.grey[400],
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
