@@ -17,7 +17,7 @@ class BackendAuthService {
   FirebaseAuthServiceSafe? _firebaseAuth;
   
   // Switch pour choisir entre Firebase et base locale
-  static const bool _useFirebase = true;
+  static const bool _useFirebase = false;
   
   // Initialiser la base de données
   Future<void> initialize() async {
