@@ -17,9 +17,6 @@ class UserService {
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final backendAuth = BackendAuthService();
     
-    // Afficher les comptes de test disponibles
-    backendAuth.printTestAccounts();
-    
     final result = await backendAuth.login(email, password);
     
     if (result['success'] == true) {
@@ -45,27 +42,10 @@ class UserService {
   // Inscription utilisateur avec backend
   static Future<Map<String, dynamic>> register(String email, String password, String name) async {
     final backendAuth = BackendAuthService();
-    
-    backendAuth.printTestAccounts();
-    
     final result = await backendAuth.register(email, password, name);
     
-    if (result['success'] == true) {
-      final user = result['user'];
-      final token = result['token'];
-      
-      // Sauvegarder la session
-      await backendAuth.saveSession(user, token);
-      
-      // Sauvegarder localement pour compatibilité
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyIsLoggedIn, true);
-      await prefs.setString(_keyUserName, user['name']);
-      await prefs.setString(_keyUserEmail, user['email']);
-      await prefs.setString(_keyUserId, user['id'].toString());
-      await prefs.setInt(_keyUserXP, user['xp'] ?? 0);
-      await prefs.setString(_keyUserLevel, user['level'] ?? 'Débutant');
-    }
+    // Ne pas sauvegarder la session après inscription
+    // L'utilisateur doit se connecter manuellement
     
     return result;
   }

@@ -29,6 +29,27 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBsxg3BBVTj6ctvZ27S-JqmevjM90Ev7gA",
+      authDomain: "tsl-p2m.firebaseapp.com",
+      projectId: "tsl-p2m",
+      storageBucket: "tsl-p2m.firebasestorage.app",
+      messagingSenderId: "114371523579",
+      appId: "1:114371523579:web:88cd1ee3966e6f0effd15e",
+      measurementId: "G-YG4QPHXDCW"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
   <title>app_p2m</title>
   <link rel="manifest" href="manifest.json">
 </head>

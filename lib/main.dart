@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pages/splash_screen.dart';
+import 'services/backend_auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialiser la base de données
+  final backendAuth = BackendAuthService();
+  await backendAuth.initialize();
+  
   runApp(const MyApp());
 }
 

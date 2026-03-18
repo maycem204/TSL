@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
 import '../widgets/navigation_wrapper.dart';
+import 'login_page.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -65,9 +66,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _logout() async {
-    await UserService.clearUserData();
+    await UserService.logout();
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false,
+      );
     }
   }
 
