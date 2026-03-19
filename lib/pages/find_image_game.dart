@@ -31,6 +31,18 @@ class _FindImageGameState extends State<FindImageGame> {
     SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okhti-soeur/1.png"),
     SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance/1.png"),
     SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre-septembre/1.png"),
+    SignItem(word: "Municipalité", imagePath: "dictionnaire_DB/baladiya-municipalite/1.png"),
+    SignItem(word: "Centre", imagePath: "dictionnaire_DB/centre-centre/1.png"),
+    SignItem(word: "Nom", imagePath: "dictionnaire_DB/esmi-nom/1.png"),
+    SignItem(word: "Élection", imagePath: "dictionnaire_DB/intikhabet-election/1.png"),
+    SignItem(word: "Grand-mère", imagePath: "dictionnaire_DB/jadda-grand mere/1.png"),
+    SignItem(word: "Café", imagePath: "dictionnaire_DB/kahwa-cafe/1.png"),
+    SignItem(word: "Travail", imagePath: "dictionnaire_DB/khedma-travail/1.png"),
+    SignItem(word: "Directeur", imagePath: "dictionnaire_DB/moudir-directeur/1.png"),
+    SignItem(word: "Arme", imagePath: "dictionnaire_DB/sleh-arme/1.png"),
+    SignItem(word: "Taxi", imagePath: "dictionnaire_DB/taxi-taxi/1.png"),
+    SignItem(word: "Aider", imagePath: "dictionnaire_DB/yaawen-aider/1.png"),
+    SignItem(word: "Entendant", imagePath: "dictionnaire_DB/yasmaa-entendant/1.png"),
   ];
 
   late List<SignItem> _gameQuestions;
@@ -49,13 +61,7 @@ class _FindImageGameState extends State<FindImageGame> {
   @override
   void initState() {
     super.initState();
-    _initializeGame();
-  }
-
-  void _initializeGame() {
-    // Prendre 6 signes différents aléatoirement pour les questions
-    final shuffledSigns = List<SignItem>.from(_allSigns)..shuffle(_random);
-    _gameQuestions = shuffledSigns.take(6).toList();
+    // Ne pas initialiser ici, laisser _startGame choisir aléatoirement
   }
 
   void _startGame() {
@@ -67,7 +73,12 @@ class _FindImageGameState extends State<FindImageGame> {
       _showResult = false;
       _isCorrect = false;
       _selectedImageIndex = null;
-      _initializeGame();
+      
+      // Utiliser une nouvelle graine aléatoire basée sur le temps pour un vrai aléatoire
+      final randomWithSeed = Random(DateTime.now().millisecondsSinceEpoch);
+      final shuffledSigns = List<SignItem>.from(_allSigns)..shuffle(randomWithSeed);
+      _gameQuestions = shuffledSigns.take(6).toList();
+      
       _setupQuestion();
     });
   }
@@ -75,35 +86,21 @@ class _FindImageGameState extends State<FindImageGame> {
   void _setupQuestion() {
     final questionSign = _gameQuestions[_currentQuestionIndex];
     
-    // Créer une liste de toutes les options sauf la bonne réponse et les questions déjà utilisées
-    final usedQuestions = _gameQuestions.take(_currentQuestionIndex + 1).toSet();
-    final otherOptions = _allSigns.where((sign) => 
-        sign.word != questionSign.word && !usedQuestions.contains(sign)
-    ).toList();
+    // Créer une liste de toutes les options sauf la bonne réponse
+    final otherOptions = _allSigns.where((sign) => sign.word != questionSign.word).toList();
     
-    // Si on n'a pas assez d'options, prendre les autres signes
-    if (otherOptions.length < 3) {
-      final allOtherOptions = _allSigns.where((sign) => sign.word != questionSign.word).toList();
-      allOtherOptions.shuffle(_random);
-      final randomOptions = allOtherOptions.take(3).toList();
-      
-      final allOptions = [questionSign, ...randomOptions];
-      allOptions.shuffle(_random);
-      
-      _correctImageIndex = allOptions.indexOf(questionSign);
-      _currentImages = allOptions.map((sign) => sign.imagePath).toList();
-    } else {
-      // Prendre 3 autres signes aléatoirement parmi ceux non utilisés
-      otherOptions.shuffle(_random);
-      final randomOptions = otherOptions.take(3).toList();
-      
-      // Ajouter la bonne réponse et mélanger les 4 options
-      final allOptions = [questionSign, ...randomOptions];
-      allOptions.shuffle(_random);
-      
-      _correctImageIndex = allOptions.indexOf(questionSign);
-      _currentImages = allOptions.map((sign) => sign.imagePath).toList();
-    }
+    // Utiliser une graine aléatoire différente pour les options
+    final optionsRandom = Random(DateTime.now().millisecondsSinceEpoch + _currentQuestionIndex);
+    otherOptions.shuffle(optionsRandom);
+    final randomOptions = otherOptions.take(3).toList();
+    
+    // Ajouter la bonne réponse et mélanger les 4 options avec une autre graine
+    final allOptions = [questionSign, ...randomOptions];
+    final finalRandom = Random(DateTime.now().millisecondsSinceEpoch + _currentQuestionIndex + 100);
+    allOptions.shuffle(finalRandom);
+    
+    _correctImageIndex = allOptions.indexOf(questionSign);
+    _currentImages = allOptions.map((sign) => sign.imagePath).toList();
     
     setState(() {
       _selectedImageIndex = null;

@@ -27,6 +27,18 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
     SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okhti-soeur/1.png"),
     SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance/1.png"),
     SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre-septembre/1.png"),
+    SignItem(word: "Municipalité", imagePath: "dictionnaire_DB/baladiya-municipalite/1.png"),
+    SignItem(word: "Centre", imagePath: "dictionnaire_DB/centre-centre/1.png"),
+    SignItem(word: "Nom", imagePath: "dictionnaire_DB/esmi-nom/1.png"),
+    SignItem(word: "Élection", imagePath: "dictionnaire_DB/intikhabet-election/1.png"),
+    SignItem(word: "Grand-mère", imagePath: "dictionnaire_DB/jadda-grand mere/1.png"),
+    SignItem(word: "Café", imagePath: "dictionnaire_DB/kahwa-cafe/1.png"),
+    SignItem(word: "Travail", imagePath: "dictionnaire_DB/khedma-travail/1.png"),
+    SignItem(word: "Directeur", imagePath: "dictionnaire_DB/moudir-directeur/1.png"),
+    SignItem(word: "Arme", imagePath: "dictionnaire_DB/sleh-arme/1.png"),
+    SignItem(word: "Taxi", imagePath: "dictionnaire_DB/taxi-taxi/1.png"),
+    SignItem(word: "Aider", imagePath: "dictionnaire_DB/yaawen-aider/1.png"),
+    SignItem(word: "Entendant", imagePath: "dictionnaire_DB/yasmaa-entendant/1.png"),
   ];
 
   late List<SignItem> _gameQuestions;
