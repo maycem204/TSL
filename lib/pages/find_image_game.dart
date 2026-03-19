@@ -4,13 +4,17 @@ import 'dart:math';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
-const Color lightRed = Color(0xFFFFE5E5);
-const Color mediumRed = Color(0xFFB32D2D);
-const Color darkRed = Color(0xFF801818);
-const Color lightRed2 = Color(0xFFCC0000);
-const Color mediumRed2 = Color(0xFF990000);
-const Color successGreen = Color(0xFF4CAF50);
-const Color errorOrange = Color(0xFFFF9800);
+const Color lightPink = Color(0xFFFBEDED);
+
+class SignItem {
+  final String word;
+  final String imagePath;
+
+  SignItem({
+    required this.word,
+    required this.imagePath,
+  });
+}
 
 class FindImageGame extends StatefulWidget {
   const FindImageGame({super.key});
@@ -21,12 +25,12 @@ class FindImageGame extends StatefulWidget {
 
 class _FindImageGameState extends State<FindImageGame> {
   final List<SignItem> _allSigns = [
-    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte.png"),
-    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison.png"),
-    SignItem(word: "Maman", imagePath: "dictionnaire_DB/mama-maman.png"),
-    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okht-soeur.png"),
-    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance.png"),
-    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre.png"),
+    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte/1.png"),
+    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison/1.png"),
+    SignItem(word: "Maman", imagePath: "dictionnaire_DB/ommi-maman/1.png"),
+    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okhti-soeur/1.png"),
+    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance/1.png"),
+    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre-septembre/1.png"),
   ];
 
   late List<SignItem> _gameQuestions;
@@ -49,6 +53,7 @@ class _FindImageGameState extends State<FindImageGame> {
   }
 
   void _initializeGame() {
+    // Prendre 6 signes différents aléatoirement pour les questions
     final shuffledSigns = List<SignItem>.from(_allSigns)..shuffle(_random);
     _gameQuestions = shuffledSigns.take(6).toList();
   }
@@ -68,28 +73,47 @@ class _FindImageGameState extends State<FindImageGame> {
   }
 
   void _setupQuestion() {
-    final currentSign = _gameQuestions[_currentQuestionIndex];
+    final questionSign = _gameQuestions[_currentQuestionIndex];
     
-    final List<SignItem> availableSigns = List.from(_allSigns);
-    availableSigns.removeWhere((sign) => sign.word == currentSign.word);
+    // Créer une liste de toutes les options sauf la bonne réponse et les questions déjà utilisées
+    final usedQuestions = _gameQuestions.take(_currentQuestionIndex + 1).toSet();
+    final otherOptions = _allSigns.where((sign) => 
+        sign.word != questionSign.word && !usedQuestions.contains(sign)
+    ).toList();
     
-    final randomSigns = List<SignItem>.from(availableSigns)..shuffle(_random);
-    final selectedRandomSigns = randomSigns.take(3).toList();
-    
-    final List<SignItem> allOptions = [currentSign, ...selectedRandomSigns];
-    allOptions.shuffle(_random);
-    
-    _correctImageIndex = allOptions.indexOf(currentSign);
-    _currentImages = allOptions.map((sign) => sign.imagePath).toList();
+    // Si on n'a pas assez d'options, prendre les autres signes
+    if (otherOptions.length < 3) {
+      final allOtherOptions = _allSigns.where((sign) => sign.word != questionSign.word).toList();
+      allOtherOptions.shuffle(_random);
+      final randomOptions = allOtherOptions.take(3).toList();
+      
+      final allOptions = [questionSign, ...randomOptions];
+      allOptions.shuffle(_random);
+      
+      _correctImageIndex = allOptions.indexOf(questionSign);
+      _currentImages = allOptions.map((sign) => sign.imagePath).toList();
+    } else {
+      // Prendre 3 autres signes aléatoirement parmi ceux non utilisés
+      otherOptions.shuffle(_random);
+      final randomOptions = otherOptions.take(3).toList();
+      
+      // Ajouter la bonne réponse et mélanger les 4 options
+      final allOptions = [questionSign, ...randomOptions];
+      allOptions.shuffle(_random);
+      
+      _correctImageIndex = allOptions.indexOf(questionSign);
+      _currentImages = allOptions.map((sign) => sign.imagePath).toList();
+    }
     
     setState(() {
       _selectedImageIndex = null;
       _showResult = false;
+      _isCorrect = false;
     });
   }
 
   void _selectImage(int index) {
-    if (_showResult) return;
+    if (_showResult || _selectedImageIndex != null) return;
     
     setState(() {
       _selectedImageIndex = index;
@@ -99,25 +123,40 @@ class _FindImageGameState extends State<FindImageGame> {
   void _checkAnswer() {
     if (_selectedImageIndex == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Veuillez sélectionner une image"),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.sentiment_dissatisfied, color: Colors.white),
+              const SizedBox(width: 8),
+              const Text("Veuillez sélectionner une image"),
+            ],
+          ),
           backgroundColor: primaryRed,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
+    final isCorrect = _selectedImageIndex == _correctImageIndex;
+    
     setState(() {
       _showResult = true;
-      _isCorrect = _selectedImageIndex == _correctImageIndex;
-
-      if (_isCorrect) {
+      _isCorrect = isCorrect;
+      
+      if (isCorrect) {
         _totalXP += 10;
         _correctAnswers++;
       }
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
+    _saveScoreToProfile();
+
+    // Passer automatiquement à la question suivante après 1.5 secondes
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         if (_currentQuestionIndex < _gameQuestions.length - 1) {
           _nextQuestion();
@@ -129,10 +168,17 @@ class _FindImageGameState extends State<FindImageGame> {
   }
 
   void _nextQuestion() {
-    setState(() {
-      _currentQuestionIndex++;
+    if (_currentQuestionIndex < _gameQuestions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+        _selectedImageIndex = null;
+        _showResult = false;
+        _isCorrect = false;
+      });
       _setupQuestion();
-    });
+    } else {
+      _showFinalScore();
+    }
   }
 
   void _showFinalScore() {
@@ -145,43 +191,59 @@ class _FindImageGameState extends State<FindImageGame> {
         title: const Text(
           "Partie terminée!",
           style: TextStyle(
-            color: primaryRed,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: primaryRed,
           ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _totalXP >= 40 ? Icons.emoji_events : _totalXP >= 20 ? Icons.star : Icons.star_outline,
-              size: 60,
-              color: _totalXP >= 40 ? primaryRed : _totalXP >= 20 ? primaryRed.withOpacity(0.7) : primaryRed,
+            const SizedBox(height: 20),
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: primaryRed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "$_correctAnswers/${_gameQuestions.length}",
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: primaryRed,
+                    ),
+                  ),
+                  const Text(
+                    "réponses correctes",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: primaryRed,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
-              "$_totalXP XP",
+              "XP gagnés: $_totalXP",
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: primaryRed,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
-              "$_correctAnswers/${_gameQuestions.length} réponses correctes",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _getPerformanceMessage(),
+              "Score moyen: ${(_totalXP / _gameQuestions.length).toStringAsFixed(1)} XP/question",
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.black54,
+                color: Colors.grey[600],
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -189,11 +251,16 @@ class _FindImageGameState extends State<FindImageGame> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _startGame();
+              setState(() {
+                _gameStarted = false;
+              });
             },
             child: const Text(
               "Rejouer",
-              style: TextStyle(color: primaryRed),
+              style: TextStyle(
+                color: primaryRed,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           TextButton(
@@ -201,39 +268,24 @@ class _FindImageGameState extends State<FindImageGame> {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
-            child: const Text("Quitter"),
+            child: const Text(
+              "Retour",
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  String _getPerformanceMessage() {
-    final percentage = (_correctAnswers / _gameQuestions.length) * 100;
-    if (percentage >= 80) return "Excellent! Vous maîtrisez parfaitement les signes!";
-    if (percentage >= 60) return "Bon travail! Continuez à pratiquer!";
-    if (percentage >= 40) return "Pas mal! Encore un peu d'entraînement.";
-    return "Continuez à apprendre, vous allez y arriver!";
-  }
-
   void _saveScoreToProfile() async {
-    print("Score Trouvez l'image sauvegardé: $_totalXP XP - $_correctAnswers/${_gameQuestions.length}");
-    
-    // Ajouter les XP au backend
-    final result = await UserService.addXP(_totalXP);
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['success'] == true 
-              ? "Score de $_totalXP XP sauvegardé dans votre profil! Niveau: ${result['level']}"
-              : "Erreur lors de la sauvegarde: ${result['message']}"
-          ),
-          backgroundColor: result['success'] == true ? primaryRed : Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    try {
+      await UserService.saveUserXP(_totalXP);
+    } catch (e) {
+      print('Erreur lors de la sauvegarde du score: $e');
     }
   }
 
@@ -266,23 +318,31 @@ class _FindImageGameState extends State<FindImageGame> {
           if (_gameStarted)
             Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.star,
-                    color: primaryRed,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "$_totalXP XP",
-                    style: const TextStyle(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: lightPink,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.star,
                       color: primaryRed,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      size: 16,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      "$_totalXP XP",
+                      style: const TextStyle(
+                        color: primaryRed,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -295,74 +355,125 @@ class _FindImageGameState extends State<FindImageGame> {
             if (!_gameStarted) ...[
               const SizedBox(height: 40),
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: primaryRed,
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [primaryRed, Color(0xFFCC0000)],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
                       ),
                       child: const Icon(
                         Icons.image,
                         color: Colors.white,
-                        size: 40,
+                        size: 50,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
                     const Text(
-                      "Trouvez l'image correspondante!",
+                      "Trouvez l'image",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: primaryRed,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       "L'application va vous proposer un mot\net vous devez sélectionner la bonne image",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         color: Colors.black54,
+                        height: 1.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: lightRed,
-                        borderRadius: BorderRadius.circular(12),
+                        color: lightPink,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: primaryRed.withOpacity(0.2)),
                       ),
                       child: const Column(
                         children: [
+                          Icon(
+                            Icons.star,
+                            color: primaryRed,
+                            size: 30,
+                          ),
+                          const SizedBox(height: 8),
                           Text(
-                            "6 questions • 10 XP par bonne réponse",
+                            "6 questions",
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: primaryRed,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
+                          Text(
+                            "10 XP par bonne réponse",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           Text(
                             "Maximum: 60 XP",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 16,
                               color: primaryRed,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    ElevatedButton(
+                      onPressed: _startGame,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryRed,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 8,
+                        shadowColor: primaryRed.withOpacity(0.3),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Commencer",
+                            style: TextStyle(
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -372,35 +483,10 @@ class _FindImageGameState extends State<FindImageGame> {
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: _startGame,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 3,
-                    shadowColor: Colors.black.withOpacity(0.3),
-                  ),
-                  child: const Text(
-                    "Commencer le jeu",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
             ] else ...[
-              const SizedBox(height: 20),
+              // Question counter
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: primaryRed,
                   borderRadius: BorderRadius.circular(20),
@@ -412,67 +498,32 @@ class _FindImageGameState extends State<FindImageGame> {
                     ),
                   ],
                 ),
-                child: Text(
-                  "Question ${_currentQuestionIndex + 1}/${_gameQuestions.length}",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      _gameQuestions[_currentQuestionIndex].word,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Trouvez l'image qui correspond à ce signe",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
               
-              // Word to find
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Trouvez l'image pour:",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: primaryRed,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _gameQuestions[_currentQuestionIndex].word,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 30),
-              
-              // Image grid
+              // Images grid
               GridView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 15,
@@ -492,14 +543,14 @@ class _FindImageGameState extends State<FindImageGame> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected 
-                            ? (isCorrect ? lightRed : (isWrong ? darkRed : lightRed))
+                            ? (isCorrect ? Colors.green : (isWrong ? Colors.red : primaryRed))
                             : Colors.black26,
                           width: isSelected ? 3 : 2,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isSelected 
-                              ? (isCorrect ? primaryRed.withOpacity(0.3) : (isWrong ? primaryRed.withOpacity(0.2) : primaryRed.withOpacity(0.3)))
+                              ? (isCorrect ? Colors.green.withOpacity(0.3) : (isWrong ? Colors.red.withOpacity(0.2) : primaryRed.withOpacity(0.3)))
                               : Colors.black.withOpacity(0.1),
                             blurRadius: isSelected ? 8 : 4,
                             offset: const Offset(0, 2),
@@ -510,7 +561,7 @@ class _FindImageGameState extends State<FindImageGame> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: isSelected 
-                            ? (isCorrect ? lightRed : (isWrong ? darkRed : lightRed))
+                            ? (isCorrect ? Colors.green.withOpacity(0.1) : (isWrong ? Colors.red.withOpacity(0.1) : primaryRed.withOpacity(0.1)))
                             : Colors.white,
                         ),
                         child: ClipRRect(
@@ -545,7 +596,7 @@ class _FindImageGameState extends State<FindImageGame> {
                                               Icons.image,
                                               size: 40,
                                               color: isSelected 
-                                                ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                                ? (isCorrect ? Colors.green : (isWrong ? Colors.red : primaryRed))
                                                 : Colors.grey[400],
                                             ),
                                             const SizedBox(height: 8),
@@ -553,7 +604,7 @@ class _FindImageGameState extends State<FindImageGame> {
                                               "Image ${index + 1}",
                                               style: TextStyle(
                                                 color: isSelected 
-                                                  ? (isCorrect ? primaryRed : (isWrong ? darkRed : primaryRed))
+                                                  ? (isCorrect ? Colors.green : (isWrong ? Colors.red : primaryRed))
                                                   : Colors.grey[600],
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
@@ -571,20 +622,20 @@ class _FindImageGameState extends State<FindImageGame> {
                                 Container(
                                   width: double.infinity,
                                   height: double.infinity,
-                                  color: successGreen.withOpacity(0.2),
+                                  color: Colors.green.withOpacity(0.2),
                                   child: const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.check_circle,
-                                        color: successGreen,
+                                        color: Colors.green,
                                         size: 50,
                                       ),
                                       SizedBox(height: 4),
                                       Text(
                                         "Correct!",
                                         style: TextStyle(
-                                          color: successGreen,
+                                          color: Colors.green,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
                                         ),
@@ -596,20 +647,20 @@ class _FindImageGameState extends State<FindImageGame> {
                                 Container(
                                   width: double.infinity,
                                   height: double.infinity,
-                                  color: errorOrange.withOpacity(0.2),
+                                  color: Colors.red.withOpacity(0.2),
                                   child: const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.cancel,
-                                        color: errorOrange,
+                                        color: Colors.red,
                                         size: 50,
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        "Incorrect!",
+                                        "Essai encore!",
                                         style: TextStyle(
-                                          color: errorOrange,
+                                          color: Colors.red,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
                                         ),
@@ -626,87 +677,46 @@ class _FindImageGameState extends State<FindImageGame> {
                 },
               ),
               
-              const SizedBox(height: 30),
-              
               // Action buttons
-              if (!_showResult) ...[
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
+              const SizedBox(height: 20),
+              Center(
+                child: SizedBox(
+                  width: 200,
                   child: ElevatedButton(
                     onPressed: _selectedImageIndex != null ? _checkAnswer : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedImageIndex != null ? primaryRed : Colors.black26,
+                      backgroundColor: _selectedImageIndex != null ? primaryRed : Colors.grey[300]!,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                      elevation: 3,
-                      shadowColor: Colors.black.withOpacity(0.3),
+                      elevation: _selectedImageIndex != null ? 8 : 2,
                     ),
-                    child: const Text(
-                      "Valider ma réponse",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _isCorrect ? successGreen.withOpacity(0.1) : errorOrange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _isCorrect ? successGreen : errorOrange,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (_isCorrect ? successGreen : errorOrange).withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _isCorrect ? Icons.check_circle : Icons.cancel,
-                        color: _isCorrect ? successGreen : errorOrange,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isCorrect ? "Correct! +10 XP" : "Essayez encore!",
-                        style: TextStyle(
-                          color: _isCorrect ? successGreen : errorOrange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _selectedImageIndex != null ? Icons.check_circle : Icons.help_outline,
+                          size: 20,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Text(
+                          "Valider",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              ),
             ],
           ],
         ),
       ),
     );
   }
-}
-
-class SignItem {
-  final String word;
-  final String imagePath;
-
-  SignItem({
-    required this.word,
-    required this.imagePath,
-  });
 }

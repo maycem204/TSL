@@ -21,12 +21,12 @@ class WriteWordGamePage extends StatefulWidget {
 
 class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProviderStateMixin {
   final List<SignItem> _allSigns = [
-    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte.png"),
-    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison.png"),
-    SignItem(word: "Maman", imagePath: "dictionnaire_DB/mama-maman.png"),
-    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okht-soeur.png"),
-    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance.png"),
-    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre.png"),
+    SignItem(word: "Carte", imagePath: "dictionnaire_DB/carta-carte/1.png"),
+    SignItem(word: "Maison", imagePath: "dictionnaire_DB/dar-maison/1.png"),
+    SignItem(word: "Maman", imagePath: "dictionnaire_DB/ommi-maman/1.png"),
+    SignItem(word: "Soeur", imagePath: "dictionnaire_DB/okhti-soeur/1.png"),
+    SignItem(word: "Danser", imagePath: "dictionnaire_DB/yachtah-dance/1.png"),
+    SignItem(word: "Septembre", imagePath: "dictionnaire_DB/septembre-septembre/1.png"),
   ];
 
   late List<SignItem> _gameQuestions;
@@ -127,7 +127,10 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
   }
 
   void _checkAnswer(String userAnswer) {
+    print('🔍 _checkAnswer appelé avec: "$userAnswer"');
+    
     if (userAnswer.trim().isEmpty) {
+      print('❌ Réponse vide');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -149,6 +152,9 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
 
     final correctAnswer = _gameQuestions[_currentQuestionIndex].word.toLowerCase().trim();
     final userAnswerClean = userAnswer.toLowerCase().trim();
+    
+    print('📝 Réponse attendue: "$correctAnswer"');
+    print('📝 Réponse utilisateur: "$userAnswerClean"');
     
     // Validation stricte : le mot doit être exactement le même
     final isCorrect = userAnswerClean == correctAnswer;
@@ -270,19 +276,19 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
   void _saveScoreToProfile() async {
     print("Score Écrivez le mot sauvegardé: $_totalXP XP - $_correctAnswers/${_gameQuestions.length}");
     
-    // Ajouter les XP au backend
-    final result = await UserService.addXP(_totalXP);
+    // Sauvegarder les XP localement
+    try {
+      await UserService.saveUserXP(_totalXP);
+    } catch (e) {
+      print('Erreur lors de la sauvegarde du score: $e');
+    }
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            result['success'] == true 
-              ? "Score de $_totalXP XP sauvegardé dans votre profil! Niveau: ${result['level']}"
-              : "Erreur lors de la sauvegarde: ${result['message']}"
-          ),
-          backgroundColor: result['success'] == true ? primaryRed : Colors.red,
-          duration: const Duration(seconds: 3),
+          content: const Text("Score sauvegardé avec succès!"),
+          backgroundColor: primaryRed,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -659,15 +665,6 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                                             );
                                           },
                                         ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          _gameQuestions[_currentQuestionIndex].word,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
                                       ],
                                     ),
                                   ),
@@ -806,16 +803,36 @@ class _WriteWordGamePageState extends State<WriteWordGamePage> with TickerProvid
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: (_textController.text.trim().isNotEmpty && !_showResult) 
-                                  ? () => _checkAnswer(_textController.text)
-                                  : null,
+                                onPressed: () {
+                                  print('🔘 Bouton cliqué - Texte: "${_textController.text}" - _showResult: $_showResult');
+                                  if (_textController.text.trim().isNotEmpty && !_showResult) {
+                                    print('✅ Validation autorisée');
+                                    _checkAnswer(_textController.text);
+                                  } else {
+                                    print('❌ Validation bloquée - Texte vide: ${_textController.text.trim().isEmpty} - _showResult: $_showResult');
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: (_textController.text.trim().isNotEmpty && !_showResult) ? primaryRed : Colors.grey,
+                                  foregroundColor: Colors.white,
                                   disabledBackgroundColor: Colors.grey,
+                                  disabledForegroundColor: Colors.white70,
+                                  elevation: 4,
+                                  shadowColor: primaryRed.withOpacity(0.3),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
                                   ),
-                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                ).copyWith(
+                                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                                    if (states.contains(WidgetState.pressed)) {
+                                      return darkRed;
+                                    }
+                                    if (states.contains(WidgetState.hovered)) {
+                                      return mediumRed;
+                                    }
+                                    return null;
+                                  }),
                                 ),
                                 child: const Text(
                                   "Valider ma réponse",
