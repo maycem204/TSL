@@ -228,44 +228,22 @@ class _DictionaryPageState extends State<DictionaryPage> {
     return ["Tous", "Objets", "Lieux", "Famille", "Mois", "Actions", "Personnes", "Transport"];
   }
 
-  // Fonction pour obtenir la couleur du pays
-  Color _getCountryColor(String title) {
-    switch (title) {
-      case "Carte":
-      case "Maison":
-      case "Café":
-      case "Centre":
-      case "Municipalité":
-        return Colors.blue;
-      case "Maman":
-      case "Soeur":
-      case "Grand-mère":
-      case "Nom":
-      case "Entendant":
-        return Colors.red;
-      default:
-        return Colors.grey;
+  // Fonction pour extraire le mot et la langue depuis le nom du dossier
+  Map<String, String> _extractWordsFromPath(String imagePath) {
+    // Extraire le nom du dossier (ex: "carta-carte" -> ["carta", "carte"])
+    final folderName = imagePath.split('/').last; // Récupère "carta-carte"
+    final parts = folderName.split('-'); // Sépare ["carta", "carte"]
+    
+    if (parts.length >= 2) {
+      return {
+        'tunisien': parts[0], // Premier mot = tunisien
+        'francais': parts[1],  // Deuxième mot = français
+      };
     }
-  }
-
-  // Fonction pour obtenir l'emoji du drapeau
-  String _getCountryEmoji(String title) {
-    switch (title) {
-      case "Carte":
-      case "Maison":
-      case "Café":
-      case "Centre":
-      case "Municipalité":
-        return '🇫🇷';
-      case "Maman":
-      case "Soeur":
-      case "Grand-mère":
-      case "Nom":
-      case "Entendant":
-        return '🇹🇳';
-      default:
-        return '';
-    }
+    return {
+      'tunisien': '',
+      'francais': '',
+    };
   }
 
   List<Sign> get filteredSigns {
@@ -308,54 +286,68 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Drapeau Tunisie
-                    Container(
-                      width: 40,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '🇹🇳',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    // Drapeau Tunisie + mot tunisien
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              '🇹🇳',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Mot en arabe
-                    Expanded(
-                      child: Text(
-                        sign.arabicWord,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: primaryRed,
-                        ),
-                      ),
-                    ),
-                    // Drapeau France
-                    Container(
-                      width: 40,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '🇫🇷',
-                          style: TextStyle(
-                            fontSize: 18,
+                        const SizedBox(width: 8),
+                        Text(
+                          ": ${_extractWordsFromPath(sign.imagePath)['tunisien'] ?? ''}",
+                          style: const TextStyle(
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
+                            color: primaryRed,
                           ),
                         ),
-                      ),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    // Drapeau France + mot français
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              '🇫🇷',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          ": ${_extractWordsFromPath(sign.imagePath)['francais'] ?? ''}",
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -744,14 +736,14 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                           width: 24,
                                           height: 16,
                                           decoration: BoxDecoration(
-                                            color: _getCountryColor(sign.title),
+                                            color: Colors.blue,
                                             borderRadius: BorderRadius.circular(2),
                                             border: Border.all(color: Colors.white, width: 1),
                                           ),
-                                          child: Center(
+                                          child: const Center(
                                             child: Text(
-                                              _getCountryEmoji(sign.title),
-                                              style: const TextStyle(
+                                              '🇫🇷',
+                                              style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                               ),
