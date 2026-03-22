@@ -39,6 +39,7 @@ dependencies:
   cloud_firestore: ^6.1.3
   firebase_auth: ^6.2.0
   html: ^0.15.4
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,11 @@ flutter:
     - dictionnaire_DB/taxi-taxi/
     - dictionnaire_DB/yaawen-aider/
     - dictionnaire_DB/yasmaa-entendant/
+    - dictionnaire_DB/ghalet-faux/
+    - dictionnaire_DB/hadaf-objectif/
+    - dictionnaire_DB/iaka-handicap/
+    - dictionnaire_DB/labes-bien/
+    - dictionnaire_DB/sponsor-sponsor/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

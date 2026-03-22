@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/user_service.dart';
-import 'settings_page.dart';
+import 'edit_profile_page.dart';
+import 'login_page.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -26,6 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isLoading = true;
   String? _profileImagePath;
   bool _hasProfileImage = false;
+  String _birthDate = '';
 
   @override
   void initState() {
@@ -42,6 +45,10 @@ class _ProfilePageState extends State<ProfilePage> {
       final userInfo = await UserService.getUserInfo();
       final gameStats = await UserService.getGameStats();
       
+      // Charger la date de naissance depuis SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final birthDate = prefs.getString('birth_date') ?? '';
+      
       if (gameStats['success'] == true) {
         final stats = gameStats['stats'];
         setState(() {
@@ -52,6 +59,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _gamesPlayed = stats['games_played'] ?? 0;
           _lastGameScore = stats['last_game_score'] ?? 0;
           _avgScore = (stats['avg_score'] ?? 0.0).toDouble();
+          _birthDate = birthDate;
           _isLoading = false;
         });
       } else {
@@ -62,6 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _userEmail = userInfo['email'] ?? 'email@example.com';
           _userXP = 0; // Valeur par défaut
           _userLevel = 'Débutant';
+          _birthDate = birthDate;
           _isLoading = false;
         });
       }
@@ -100,6 +109,55 @@ class _ProfilePageState extends State<ProfilePage> {
           _profileImagePath = null;
           _hasProfileImage = false;
         });
+      }
+    }
+  }
+
+  // Méthode de déconnexion
+  Future<void> _logout() async {
+    try {
+      // Afficher un dialogue de confirmation
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Déconnexion'),
+          content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Déconnexion',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await UserService.logout();
+        
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => LoginPage(),
+            ),
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la déconnexion: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -214,6 +272,10 @@ class _ProfilePageState extends State<ProfilePage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 2,
+                          ),
                         ),
                         child: ClipOval(
                           child: _hasProfileImage && _profileImagePath != null
@@ -243,16 +305,29 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fontSize: 14,
                               ),
                             ),
+                            if (_birthDate.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _birthDate,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 8),
-                            // Edit Button moved here
+                            // Edit Button
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SettingsPage(),
+                                    builder: (context) => EditProfilePage(),
                                   ),
-                                );
+                                ).then((_) {
+                                  // Recharger les infos quand on revient
+                                  _loadUserInfo();
+                                });
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
@@ -436,6 +511,33 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Logout Button
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              child: ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout, color: Colors.white),
+                label: const Text(
+                  "Déconnexion",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
             ),
             
             const SizedBox(height: 24),

@@ -295,4 +295,50 @@ class DatabaseService {
     print('📧 demo@lst.com | 🔐 demo123 | 👤 Demo LST');
     print('=====================================\n');
   }
+
+  // Mettre à jour le profil utilisateur
+  Future<Map<String, dynamic>> updateProfile({
+    required String email,
+    required String name,
+    String? password,
+  }) async {
+    try {
+      Map<String, dynamic>? user;
+      
+      // Chercher l'utilisateur dans la liste des utilisateurs
+      for (var userEmail in _users.keys) {
+        if (userEmail == email) {
+          user = _users[userEmail];
+          break;
+        }
+      }
+      
+      if (user != null) {
+        // Mettre à jour le nom
+        user['name'] = name;
+        
+        // Si un nouveau mot de passe est fourni, le mettre à jour
+        if (password != null && password.isNotEmpty) {
+          user['password'] = password;
+        }
+        
+        return {
+          'success': true,
+          'message': 'Profil mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Utilisateur non trouvé',
+          'error': 'USER_NOT_FOUND',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur lors de la mise à jour du profil: ${e.toString()}',
+        'error': 'UPDATE_FAILED',
+      };
+    }
+  }
 }

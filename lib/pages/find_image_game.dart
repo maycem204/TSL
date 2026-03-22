@@ -43,6 +43,11 @@ class _FindImageGameState extends State<FindImageGame> {
     SignItem(word: "Taxi", imagePath: "dictionnaire_DB/taxi-taxi/1.png"),
     SignItem(word: "Aider", imagePath: "dictionnaire_DB/yaawen-aider/1.png"),
     SignItem(word: "Entendant", imagePath: "dictionnaire_DB/yasmaa-entendant/1.png"),
+    SignItem(word: "Faux", imagePath: "dictionnaire_DB/ghalet-faux/1.png"),
+    SignItem(word: "Objectif", imagePath: "dictionnaire_DB/hadaf-objectif/1.png"),
+    SignItem(word: "Handicap", imagePath: "dictionnaire_DB/iaka-handicap/1.png"),
+    SignItem(word: "Bien", imagePath: "dictionnaire_DB/labes-bien/1.png"),
+    SignItem(word: "Sponsor", imagePath: "dictionnaire_DB/sponsor-sponsor/1.png"),
   ];
 
   late List<SignItem> _gameQuestions;

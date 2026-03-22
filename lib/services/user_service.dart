@@ -232,4 +232,55 @@ class UserService {
   }) async {
     await updateUserInfo(userName: name, email: email);
   }
+
+  // Mettre à jour le profil avec mot de passe
+  static Future<Map<String, dynamic>> updateProfile(
+    String email,
+    String name,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final backendAuth = BackendAuthService();
+    
+    try {
+      // Si un nouveau mot de passe est fourni, vérifier d'abord le mot de passe actuel
+      if (newPassword.isNotEmpty) {
+        final loginResult = await backendAuth.login(email, currentPassword);
+        if (loginResult['success'] != true) {
+          return {
+            'success': false,
+            'message': 'Mot de passe actuel incorrect',
+          };
+        }
+      }
+      
+      // Mettre à jour le profil dans le backend
+      final result = await backendAuth.updateProfile(
+        email: email,
+        name: name,
+        password: newPassword.isNotEmpty ? newPassword : null,
+      );
+      
+      if (result['success'] == true) {
+        // Mettre à jour les informations locales
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyUserName, name);
+        
+        return {
+          'success': true,
+          'message': 'Profil mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': result['message'] ?? 'Erreur lors de la mise à jour',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur: ${e.toString()}',
+      };
+    }
+  }
 }

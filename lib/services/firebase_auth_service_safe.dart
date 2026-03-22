@@ -527,6 +527,68 @@ class FirebaseAuthServiceSafe {
     await prefs.remove('auth_token');
   }
 
+  // Mettre à jour le profil utilisateur
+  Future<Map<String, dynamic>> updateProfile({
+    required String email,
+    required String name,
+    String? password,
+  }) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(email).get();
+      
+      if (userDoc.exists) {
+        final updateData = <String, dynamic>{
+          'name': name,
+          'updated_at': FieldValue.serverTimestamp(),
+        };
+        
+        // Si un nouveau mot de passe est fourni, le mettre à jour
+        if (password != null && password.isNotEmpty) {
+          final currentUser = _auth.currentUser;
+          if (currentUser != null && currentUser.email == email) {
+            await currentUser.updatePassword(password);
+            updateData['password'] = password; // Pour la cohérence dans Firestore
+          }
+        }
+        
+        await _firestore.collection('users').doc(email).update(updateData);
+        
+        // Mettre à jour la session locale
+        final session = await getSession();
+        if (session != null) {
+          final updatedSession = Map<String, dynamic>.from(session);
+          updatedSession['name'] = name;
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('auth_token') ?? '';
+          await saveSession(updatedSession, token);
+        }
+        
+        return {
+          'success': true,
+          'message': 'Profil mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Utilisateur non trouvé',
+          'error': 'USER_NOT_FOUND',
+        };
+      }
+    } on FirebaseAuthException catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur lors de la mise à jour du profil: ${e.message}',
+        'error': e.code,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur lors de la mise à jour du profil: ${e.toString()}',
+        'error': 'UPDATE_FAILED',
+      };
+    }
+  }
+
   // Afficher les comptes de test disponibles (désactivé pour éviter le spam)
   void printTestAccounts() {
     // Plus d'affichage pour éviter le spam dans le terminal

@@ -147,4 +147,24 @@ class BackendAuthService {
       _database.printTestAccounts();
     }
   }
+
+  // Mettre à jour le profil utilisateur
+  Future<Map<String, dynamic>> updateProfile({
+    required String email,
+    required String name,
+    String? password,
+  }) async {
+    if (_useFirebase) {
+      if (_firebaseAuth == null) {
+        return {
+          'success': false,
+          'message': 'Firebase non initialisé',
+          'error': 'FIREBASE_NOT_READY',
+        };
+      }
+      return await _firebaseAuth!.updateProfile(email: email, name: name, password: password);
+    } else {
+      return await _database.updateProfile(email: email, name: name, password: password);
+    }
+  }
 }

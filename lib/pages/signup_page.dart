@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import '../services/user_service.dart';
@@ -83,6 +84,13 @@ class _SignUpPageState extends State<SignUpPage> {
       
       if (mounted) {
         if (result['success'] == true) {
+          // Sauvegarder la date de naissance dans SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('birth_date', birthDate);
+          
+          // Déconnecter l'utilisateur pour forcer la reconnexion
+          await UserService.logout();
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("${result['message']} Veuillez vous connecter."),
@@ -91,7 +99,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           );
           
-          // Rediriger vers la page de connexion
+          // Rediriger vers la page de connexion après inscription réussie
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => LoginPage(),
@@ -103,6 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
             SnackBar(
               content: Text(result['message'] ?? "Erreur lors de l'inscription"),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
