@@ -181,11 +181,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _pickImage(ImageSource source) async {
     try {
       final picker = ImagePicker();
+      
+      // Configuration spécifique pour la caméra web
       final pickedFile = await picker.pickImage(
         source: source,
         maxWidth: 800,
         maxHeight: 800,
         imageQuality: 80,
+        // Options supplémentaires pour la caméra web
+        preferredCameraDevice: CameraDevice.front,
       );
 
       if (pickedFile != null) {
@@ -209,15 +213,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           );
         }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Aucune image sélectionnée'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       print('Erreur lors de la sélection de l\'image: $e');
       if (mounted) {
+        String errorMessage = 'Erreur lors de la sélection de l\'image';
+        
+        // Messages d'erreur spécifiques pour la caméra web
+        if (e.toString().contains('Permission denied')) {
+          errorMessage = 'Permission d\'accès à la caméra refusée. Veuillez autoriser l\'accès dans les paramètres du navigateur.';
+        } else if (e.toString().contains('NotFound')) {
+          errorMessage = 'Aucune caméra trouvée sur cet appareil.';
+        } else if (e.toString().contains('NotReadable')) {
+          errorMessage = 'La caméra est déjà utilisée par une autre application.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la sélection de l\'image'),
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 3),
           ),
         );
       }

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/user_service.dart';
 import 'edit_profile_page.dart';
 import 'login_page.dart';
+import '../widgets/capture_history_widget.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -609,6 +610,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
+            
+            const SizedBox(height: 24),
+            
+            // Historique des captures IA
+            const CaptureHistoryWidget(),
             
             const SizedBox(height: 24),
             
