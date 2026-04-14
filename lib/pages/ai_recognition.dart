@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/navigation_wrapper.dart';
+import 'ai_live_detection_page.dart';
 
 // MODÈLE DE DONNÉES POUR L'HISTORIQUE
 class CaptureHistory {
@@ -876,6 +877,33 @@ class _AIRecognitionPageState extends State<AIRecognitionPage> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+              if (!showCapturedImage) const SizedBox(height: 20),
+
+              // 🆕 BOUTON DÉTECTION TEMPS RÉEL
+              if (!showCapturedImage)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AILiveDetectionPage(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.live_tv, color: Colors.white),
+                    label: const Text("Détection temps réel", style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
                     ),
                   ),
                 ),
