@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'ai_recognition.dart';
-import 'interactive_video_page.dart';
 import 'find_image_game.dart';
 import 'write_word_game.dart';
-import 'dictionary_page.dart';
+import 'sign_recognition_game.dart';
 import 'dart:math';
 
 // Couleurs thématiques
@@ -130,26 +128,10 @@ class _GamesPageState extends State<GamesPage> with TickerProviderStateMixin {
 
             _buildGameCard(
               context,
-              "Vidéo Interactive",
-              "Apprenez avec des vidéos\ninteractives",
-              Icons.play_circle,
-              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const InteractiveVideoPage())),
-            ),
-
-            _buildGameCard(
-              context,
-              "Reconnaissance IA",
-              "Utilisez l'IA pour reconnaître\nvos signes en temps réel",
-              Icons.camera_alt,
-              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AIRecognitionPage())),
-            ),
-
-            _buildGameCard(
-              context,
-              "Dictionnaire",
-              "Consultez le dictionnaire\ncomplet des signes",
-              Icons.menu_book,
-              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DictionaryPage())),
+              "Jeu de Reconnaissance",
+              "Reproduisez les signes\navec votre caméra",
+              Icons.sign_language,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignRecognitionGame())),
             ),
           ],
         ),
