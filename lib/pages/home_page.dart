@@ -3,6 +3,7 @@ import 'ai_recognition.dart';
 import 'game_pages.dart';
 import 'profile_page.dart';
 import 'dictionary_page.dart';
+import 'community_page_simple.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -60,6 +61,10 @@ class _HomePageState extends State<HomePage> {
             label: "Jeux",
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: "Communauté",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Profil",
           ),
@@ -77,6 +82,8 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return GamesPage();
       case 3:
+        return CommunityPageSimple();
+      case 4:
         return ProfilePage();
       default:
         return _HomePageContent();

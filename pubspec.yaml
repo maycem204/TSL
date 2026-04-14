@@ -41,6 +41,7 @@ dependencies:
   html: ^0.15.4
   image_picker: ^1.0.7
   camera: ^0.10.5+5
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

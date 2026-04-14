@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/user_service.dart';
+import '../services/profile_image_service.dart';
 import 'edit_profile_page.dart';
 import 'login_page.dart';
-import '../widgets/capture_history_widget.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 const Color bgGrey = Color(0xFFF5F5F5);
@@ -85,24 +85,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadProfileImage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final profileImageBase64 = prefs.getString('profile_image_base64');
+      // Utiliser le nouveau service Firebase
+      final imageData = await ProfileImageService.getProfileImage();
+      final hasImage = await ProfileImageService.hasProfileImage();
       
-      if (profileImageBase64 != null && profileImageBase64.isNotEmpty) {
-        if (mounted) {
-          setState(() {
-            _profileImagePath = profileImageBase64;
-            _hasProfileImage = true;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _profileImagePath = null;
-            _hasProfileImage = false;
-          });
-        }
-      }
+      setState(() {
+        _profileImagePath = imageData;
+        _hasProfileImage = hasImage;
+      });
     } catch (e) {
       print('Erreur lors du chargement de l\'image de profil: $e');
       if (mounted) {
@@ -610,11 +600,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
-            
-            const SizedBox(height: 24),
-            
-            // Historique des captures IA
-            const CaptureHistoryWidget(),
             
             const SizedBox(height: 24),
             
