@@ -4,6 +4,8 @@ import '../pages/game_pages.dart';
 import '../pages/profile_page.dart';
 import '../pages/dictionary_page.dart';
 import '../pages/community_page_simple.dart';
+import '../pages/ai_recognition_page.dart';
+import '../pages/ai_demo_page.dart';
 
 const Color primaryRed = Color(0xFFE60012);
 
@@ -62,6 +64,10 @@ class _NavigationWrapperState extends State<NavigationWrapper> {
                   label: "Jeux",
                 ),
                 BottomNavigationBarItem(
+                  icon: Icon(Icons.camera_alt),
+                  label: "IA",
+                ),
+                BottomNavigationBarItem(
                   icon: Icon(Icons.people),
                   label: "Communauté",
                 ),
@@ -101,11 +107,18 @@ class _NavigationWrapperState extends State<NavigationWrapper> {
       case 3:
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => CommunityPageSimple()),
+          MaterialPageRoute(builder: (context) => AIRecognitionPage()),
           (route) => false,
         );
         break;
       case 4:
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => CommunityPageSimple()),
+          (route) => false,
+        );
+        break;
+      case 5:
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => ProfilePage()),
